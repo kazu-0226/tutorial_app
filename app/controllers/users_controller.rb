@@ -1,5 +1,12 @@
 class UsersController < ApplicationController
-  before_action :logged_in_user, only: [:edit, :update]
+  before_action :logged_in_user, only: [:index, :edit, :update, :destroy]     # editとupdateアクションにlogged_in_userメソッドを適用
+  before_action :correct_user,   only: [:edit, :update]
+  before_action :admin_user,     only: :destroy
+
+  def index
+    @users = User.paginate(page: params[:page])
+  end
+
 
    # GET /users/:id
   def show
@@ -29,7 +36,7 @@ class UsersController < ApplicationController
   end
 
   def edit
-    @user = User.find(params[:id])
+    @user = User.find(params[:id]) # URLのユーザーidと同じユーザーをDBから取り出して@userに代入
   end
 
   def update
@@ -40,6 +47,12 @@ class UsersController < ApplicationController
     else
       render :edit
     end
+  end
+
+  def destroy
+    User.find(params[:id]).destroy
+    flash[:success] = "User deleted"
+    redirect_to users_url
   end
 
   private
@@ -54,10 +67,21 @@ class UsersController < ApplicationController
 
     # ログイン済みユーザーかどうか確認
     def logged_in_user
-      unless logged_in?
+      unless logged_in?                     # ユーザーがログインしていなければ(false)処理を行う
+        store_location                      # アクセスしようとしたURLを覚えておく
         flash[:danger] = "Please log in."
         redirect_to login_url
       end
+    end
+
+    def correct_user
+      @user = User.find(params[:id])                      # URLのidの値と同じユーザーを@userに代入
+      redirect_to(root_url) unless current_user?(@user)   # @userと記憶トークンcookieに対応するユーザー(current_user)を比較して、失敗したらroot_urlへリダイレクト
+    end
+
+    # 管理者かどうか確認
+    def admin_user
+      redirect_to(root_url) unless current_user.admin?
     end
 
 end
