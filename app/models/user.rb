@@ -1,4 +1,5 @@
 class User < ApplicationRecord
+    has_many :microposts, dependent: :destroy
     attr_accessor :remember_token, :activation_token     , :reset_token                         # 記憶トークンと有効化トークンを定義
     before_save { email.downcase! }                                               #DB保存前にemailの値を小文字に変換する
     before_create :create_activation_digest                                       # 作成前に適用
@@ -66,6 +67,13 @@ class User < ApplicationRecord
     def password_reset_expired?
       reset_sent_at < 2.hours.ago
     end
+
+    # 試作feedの定義
+  # 完全な実装は次章の「ユーザーをフォローする」を参照
+  def feed
+    Micropost.where("user_id = ?", id)
+  end
+
 
   private
 

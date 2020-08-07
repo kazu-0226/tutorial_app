@@ -11,6 +11,7 @@ class UsersController < ApplicationController
    # GET /users/:id
   def show
     @user = User.find(params[:id])
+    @microposts = @user.microposts.paginate(page: params[:page])
     # => app/views/users/show.html.erb
     # debugger
     redirect_to root_url and return unless @user.activated?    
@@ -66,15 +67,6 @@ class UsersController < ApplicationController
   end
 
  # beforeアクション
-
-    # ログイン済みユーザーかどうか確認
-    def logged_in_user
-      unless logged_in?                     # ユーザーがログインしていなければ(false)処理を行う
-        store_location                      # アクセスしようとしたURLを覚えておく
-        flash[:danger] = "Please log in."
-        redirect_to login_url
-      end
-    end
 
     def correct_user
       @user = User.find(params[:id])                      # URLのidの値と同じユーザーを@userに代入
